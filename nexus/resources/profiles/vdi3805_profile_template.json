@@ -1,0 +1,27 @@
+{
+  "_comment": "TEMPLATE / EXAMPLE ONLY. Record numbers, names and fields below match the synthetic sample files, NOT a real VDI 3805 sheet. Copy this file and fill in the record layout of the VDI 3805 part you use (e.g. Blatt 2, 6, ...).",
+  "name": "Example radiator profile (synthetic)",
+  "part": "example",
+  "default_key_fields": null,
+  "rules": {"abs_tol": 0.0, "rel_tol": 0.0, "allow_unit_conversion": false, "decimal_comma": "comma"},
+  "records": {
+    "010": {"name": "Header", "key_fields": 1, "fields": [
+      {"name": "Record type"}, {"name": "Index"}, {"name": "Guideline"}, {"name": "Part"},
+      {"name": "Manufacturer code", "role": "identifier", "mandatory": true},
+      {"name": "Manufacturer name", "role": "text"}, {"name": "Date"}, {"name": "Version"}]},
+    "100": {"name": "Product series", "key_fields": 3, "parent": null, "fields": [
+      {"name": "Record type"}, {"name": "Index"}, {"name": "Series no.", "role": "identifier"},
+      {"name": "Description", "role": "text"}, {"name": "Type code", "role": "identifier"}]},
+    "110": {"name": "Variant", "key_fields": 4, "parent": "100", "fields": [
+      {"name": "Record type"}, {"name": "Index"}, {"name": "Series no."}, {"name": "Variant no.", "role": "identifier"},
+      {"name": "Type", "role": "parameter"},
+      {"name": "Height", "unit": "mm", "numeric": true, "role": "geometry"},
+      {"name": "Length", "unit": "mm", "numeric": true, "role": "geometry"},
+      {"name": "Connection", "role": "connection"}]},
+    "200": {"name": "Performance data", "key_fields": 4, "parent": "100", "fields": [
+      {"name": "Record type"}, {"name": "Index"}, {"name": "Series no."}, {"name": "Point no."},
+      {"name": "Flow temperature", "unit": "°C", "numeric": true, "role": "parameter"},
+      {"name": "Return temperature", "unit": "°C", "numeric": true, "role": "parameter"},
+      {"name": "Room temperature", "unit": "°C", "numeric": true, "role": "parameter"}]}
+  }
+}

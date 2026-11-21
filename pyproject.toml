@@ -1,0 +1,26 @@
+[project]
+name = "nexus"
+version = "0.3.0"
+description = "Nexus Compare & Editor: file/folder comparison, code editor, VDI 3805 and XML engineering data, file tools and automation"
+requires-python = ">=3.10"
+dependencies = ["PySide6>=6.6", "Pygments>=2.15", "openpyxl>=3.1", "python-docx>=1.1", "chardet>=5", "lxml>=5", "xlrd>=2"]
+
+[project.optional-dependencies]
+ai = ["anthropic>=0.70"]
+windows = ["pywin32"]
+
+[project.scripts]
+nexus-cli = "nexus.__main__:main"
+
+[project.gui-scripts]
+nexus = "nexus.__main__:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["nexus*"]
+
+[tool.setuptools.package-data]
+nexus = ["resources/*", "resources/profiles/*"]

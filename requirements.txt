@@ -1,0 +1,11 @@
+PySide6>=6.6
+Pygments>=2.15
+openpyxl>=3.1
+python-docx>=1.1
+chardet>=5
+lxml>=5
+xlrd>=2
+# optional: AI change summaries (off by default, only on explicit user action)
+# anthropic>=0.70
+# optional on Windows: legacy .doc/.xls conversion through Microsoft Office
+# pywin32

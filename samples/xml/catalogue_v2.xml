@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Catalogue xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="catalogue.xsd">
+  <Product id="HK22">
+    <Variant id="HK22-300-500">
+      <Property name="Height" unit="mm">300</Property>
+      <Property name="Length" unit="mm">500</Property>
+      <Property name="HeatOutput" unit="W">655</Property>
+      <Port id="P1" connection="G3/4 AG"/>
+    </Variant>
+    <Variant id="HK22-300-400">
+      <Property name="Height" unit="mm">300.0</Property>
+      <Property name="Length" unit="mm">400</Property>
+      <Property name="HeatOutput" unit="W">512</Property>
+      <Port id="P1" connection="G1/2 IG"/>
+      <Geometry ref="geo/hk22_300_400.stp"/>
+    </Variant>
+    <Variant id="HK22-300-600">
+      <Property name="Height" unit="mm">300</Property>
+      <Property name="Length">600</Property>
+      <Port id="P1" connection="G1/2 IG"/>
+      <Geometry ref="geo/hk22_300_600.stp"/>
+    </Variant>
+  </Product>
+</Catalogue>

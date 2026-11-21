@@ -1,0 +1,57 @@
+name: Build Windows app
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write   # needed to attach the installer to a release on version tags
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt pyinstaller pytest
+      - run: python tests/make_samples.py
+      - name: Tests (engines + offscreen GUI)
+        run: python -m pytest -q tests
+        env:
+          QT_QPA_PLATFORM: offscreen
+      - name: Build Nexus.exe (PyInstaller one-folder)
+        run: pyinstaller --noconfirm --clean nexus.spec
+      - name: Smoke test of the built exe (--job exit code)
+        shell: pwsh
+        run: |
+          $job = @{ type = "file_compare"; name = "smoke"; left = "$pwd\samples\code\left.py"; right = "$pwd\samples\code\right.py" } | ConvertTo-Json
+          Set-Content -Path smoke.json -Value $job -Encoding utf8
+          $p = Start-Process -FilePath dist\Nexus\Nexus.exe -ArgumentList "--job", "smoke.json" -Wait -PassThru
+          Write-Host "Nexus.exe --job exit code: $($p.ExitCode)"
+          if ($p.ExitCode -ne 1) { throw "expected exit code 1 (differences found), got $($p.ExitCode)" }
+      - name: Install Inno Setup if the runner image has none
+        shell: pwsh
+        run: |
+          if (-not (Test-Path "C:\Program Files (x86)\Inno Setup 6\ISCC.exe")) { choco install innosetup -y --no-progress }
+      - name: Build installer
+        shell: pwsh
+        run: '& "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer\nexus.iss'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Nexus-windows-portable
+          path: dist/Nexus
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Nexus-windows-installer
+          path: dist/Nexus-*-setup.exe
+      - name: Attach installer to the GitHub release (version tags only)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/Nexus-*-setup.exe
+          generate_release_notes: true
