@@ -28,7 +28,7 @@ Everything runs locally. The optional AI change summary is off by default and as
 ![Light environment](screenshots/03-text-compare.light.png)
 
 * **Download:** the Windows installer `Nexus-<version>-setup.exe` is on the [Releases page](https://github.com/sachitss/nexus/releases). It is not code-signed yet, so Windows SmartScreen may ask you to confirm (More info → Run anyway).
-* **Windows app:** run `build_windows.bat` to build `dist\Nexus\Nexus.exe`, then compile `installer\nexus.iss` with Inno Setup to get `Nexus-0.3.0-setup.exe`. Pushing to GitHub builds both through `.github/workflows/build-windows.yml`.
+* **Windows app:** run `build_windows.bat` to build `dist\Nexus\Nexus.exe`, then compile `installer\nexus.iss` with Inno Setup to get `Nexus-0.3.0-setup.exe`. Pushing to GitHub builds both through `.github/workflows/build-windows.yml`. Publishing a release (tag `v<version>`) on GitHub builds again and attaches the installer to it.
 * **Any OS:** `pip install -r requirements.txt` then `python -m nexus`.
 
 ```
