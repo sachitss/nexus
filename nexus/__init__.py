@@ -1,6 +1,6 @@
-APP_NAME = "Nexus Compare & Editor"
+APP_NAME = "NEXUS ONE"
 APP_SHORT = "Nexus"
-__version__ = "0.3.0"
+__version__ = "0.4.0"
 
 # Publisher / branding
 PUBLISHER = "Ing.-Büro Sachit Shrestha"

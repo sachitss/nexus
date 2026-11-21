@@ -1,5 +1,7 @@
 # Research and competitive analysis
 
+*Updated for NEXUS ONE 0.4 (2026-11-21): section 4 adds Bulk Rename Utility, Directory List & Print Pro and listDir.*
+
 Nexus Compare & Editor combines four kinds of tool: a file and folder comparison tool, a programmer's text editor, a directory lister and a file attribute changer. It also adds engineering data comparison, with VDI 3805 as the top priority.
 
 **Method.** The installers and archives supplied with the brief were Beyond Compare 5.1, Notepad++ 8.4.9, DirectoryListPrint portable and File Attribute Changer x64. They were used only to learn which features matter. None of them was run, unpacked, decompiled or copied. Their names, artwork and layout are not reused. Feature knowledge comes from the products' public documentation and general domain knowledge. Nothing in Nexus is derived from their code or resources.
@@ -77,3 +79,45 @@ Nexus Compare & Editor combines four kinds of tool: a file and folder comparison
 * Part 99 (the Siemens catalogue header) has no sheet in the folder, so it is checked against Blatt 1 only.
 * Whether XML catalogues per ISO 16757 are already in use, and which XSD.
 * Your network share layouts for folder sync, such as UNC paths and DFS.
+
+## 4. NEXUS ONE update: rename, directory listing and listDir
+
+**Method, again.** The NEXUS ONE brief came with the Bulk Rename Utility program files (exe, help file, ini, licence, tips) and the Directory List & Print Pro executable. None of them was run, unpacked or decompiled; the Bulk Rename Utility licence forbids reverse engineering and derivative works. Only the plain-text tips file was read. Feature knowledge comes from the vendors' public pages and manual listings, for example the [Bulk Rename Utility site](https://bulkrenameutility.co.uk/), its [published manual](https://www.s3.tgrmn.com/bru4/BRU_Manual.pdf) and [what's new in version 4](https://bulkrenameutility.co.uk/Whatsnew.php), and the [Directory List & Print product overview](https://sourceforge.net/app/directory-list-print/). A screenshot of RJ TextEd (side-by-side compare inside the editor, with a docked file browser and a line-detail strip) was used as a layout reference.
+
+### Feature matrix (NEXUS ONE 0.4)
+
+| Capability | Bulk Rename Utility | Directory List & Print Pro | listDir (see below) | **NEXUS ONE 0.4** |
+|---|---|---|---|---|
+| Rename files and folders | ✔ | – | – | ✔ (folders together with their contents) |
+| Many rules with a fixed processing order | ✔ (numbered criteria, fixed order) | – | – | ✔ (free order: add, reorder, untick) |
+| Find/replace, regex, remove n chars, insert at position | ✔ | – | – | ✔ |
+| Numbering: start, step, padding, per folder | ✔ | – | – | ✔ (also a–z, A–Z, roman) |
+| Case, spaces, extension | ✔ | – | – | ✔ |
+| Dates (created/modified/now), parent folder | ✔ | – | – | ✔ (tokens) |
+| Metadata (EXIF, ID3) | ✔ | – | – | ◐ size, dates, first line, regex from text/DOCX content; EXIF/ID3 on the roadmap |
+| Rename from a list | ✔ (text import) | – | – | ✔ (CSV, TXT, Excel; match by name, stem or full path) |
+| Live preview, collisions shown | ✔ | – | – | ✔ (duplicate targets, existing files, invalid/reserved Windows names, long paths) |
+| Confirmation listing every change | ◐ | – | – | ✔ (complete before → after list) |
+| Undo | ✔ (last operation) | – | – | ✔ (any run from the history) |
+| Rollback if a file is locked mid-run | – | – | – | ✔ (journal first, everything undone on error) |
+| Recovery after a crash mid-run | – | – | – | ✔ (unfinished journals are offered for restore) |
+| Saved presets | ✔ (favourites) | – | – | ✔ (profiles, also usable in automation) |
+| Recursive listing, include/exclude subfolders, depth | – | ✔ | ✔ | ✔ |
+| Filters: wildcard, regex, size, created/modified dates | – | ✔ | ◐ | ✔ |
+| Choose and order columns | – | ✔ | ◐ | ✔ (16 columns incl. SHA-256, folder totals, empty flag) |
+| Sort and group | – | ✔ | ◐ | ✔ (group by extension, folder, type, year, month) |
+| Folder statistics, empty folders, largest files | – | ◐ | ◐ | ✔ |
+| Tree diagram | – | ✔ | ◐ | ✔ |
+| Export | – | ✔ (Excel, CSV, TXT, HTML, Word, clipboard) | ◐ | ✔ (XLSX, CSV, TXT, HTML, PDF, Markdown, XML, JSON) |
+| Print preview, report templates | – | ✔ | – | ✔ (templates as JSON, header line, branding footer) |
+| Duplicate finder | – | – | – | ✔ (separate module) |
+
+### listDir: uncertainty
+
+"listDir" does not identify one product. The name is used by several small directory listers (for example DirLister on GitHub and Softpedia, "Directory Lister", and the `listdir` function of programming languages), and no listDir installer came with the brief. NEXUS ONE therefore covers the common listDir workflow (browse, list recursively, filter, sort, show metadata, export) through the Directory Listing module and the dual-pane explorer. **To confirm:** which listDir you use, so its specific features can be checked.
+
+### What NEXUS ONE does differently
+
+* **Rules are data.** A rename profile is a JSON list that the preview, the automation engine (`rename_preview` job) and the history all share. Bulk Rename Utility's criteria run in a fixed order; NEXUS ONE runs rules in the order you set.
+* **Safety first.** No rename without the complete before/after list and an explicit Yes. A journal is written before the first rename, failures roll everything back, and interrupted runs are found at the next start.
+* **Listing and reporting are one step.** The scan is kept in memory, so filters, columns and grouping change instantly without rescanning, and the same report goes to eight formats or to the printer.

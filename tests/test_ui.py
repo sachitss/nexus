@@ -118,3 +118,41 @@ def test_branding(win):
     assert os.path.exists(LOGO) and PUBLISHER == "Ing.-Büro Sachit Shrestha"
     texts = [w.text() for w in win.findChildren(QLabel)]
     assert any(POWERED_BY in t for t in texts)
+
+
+def test_file_tools_views(win, tmp_path):
+    from nexus.core import renamer
+    e = win.open_explorer(1)
+    e.listing.root.setText(S)
+    e.listing.group.setCurrentText("ext")
+    e.listing.tree_on.setChecked(True)
+    e.listing.scan()
+    e.listing.task.wait()
+    pump(win._app)
+    assert e.listing.rep and e.listing.table.rowCount() == len(e.listing.rep.items) > 10
+    assert "└── " in e.listing.tree_text.toPlainText()
+    e.listing.pattern.setText("*.csv")
+    e.listing.rebuild()
+    assert all(f.ext == ".csv" or f.is_dir for f in e.listing.rep.items)
+    # bulk rename: preview only (the confirmation dialog answers No in tests)
+    for n in ("a.txt", "b.txt"):
+        (tmp_path / n).write_text(n)
+    e.rename.add_paths([str(tmp_path / "a.txt"), str(tmp_path / "b.txt")])
+    e.rename.set_rules([renamer.new_rule("case", mode="upper"), renamer.new_rule("numbering", position="prefix")])
+    assert e.rename.table.rowCount() == 2 and e.rename.rule_list.count() == 2
+    assert e.rename.table.item(0, 3).text() == "001_A.txt"
+    from PySide6.QtWidgets import QMessageBox
+    seen = []
+    e.rename.confirm = lambda box: (seen.append(box.detailedText()), QMessageBox.StandardButton.No)[1]
+    e.rename.apply()
+    assert (tmp_path / "a.txt").exists()                     # not confirmed -> nothing renamed
+    assert "a.txt  →  001_A.txt" in seen[0]                   # the full before/after list was shown
+    e.rename.confirm = lambda box: QMessageBox.StandardButton.Yes
+    e.rename.apply()
+    assert (tmp_path / "001_A.txt").exists() and (tmp_path / "002_B.txt").exists()
+    d = win.open_duplicates()
+    d.roots.setText(S)
+    d.analyse()
+    d.task.wait()
+    pump(win._app)
+    assert d.res is not None and "Nothing was deleted" in d.status.text()

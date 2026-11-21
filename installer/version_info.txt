@@ -1,17 +1,17 @@
 # Windows file properties for Nexus.exe (used by nexus.spec)
 VSVersionInfo(
-  ffi=FixedFileInfo(filevers=(0, 3, 0, 0), prodvers=(0, 3, 0, 0), mask=0x3f, flags=0x0, OS=0x40004,
+  ffi=FixedFileInfo(filevers=(0, 4, 0, 0), prodvers=(0, 4, 0, 0), mask=0x3f, flags=0x0, OS=0x40004,
                     fileType=0x1, subtype=0x0, date=(0, 0)),
   kids=[
     StringFileInfo([StringTable('040704b0', [
       StringStruct('CompanyName', 'Ing.-Büro Sachit Shrestha'),
-      StringStruct('FileDescription', 'Nexus Compare & Editor'),
-      StringStruct('FileVersion', '0.3.0'),
+      StringStruct('FileDescription', 'NEXUS ONE'),
+      StringStruct('FileVersion', '0.4.0'),
       StringStruct('InternalName', 'Nexus'),
       StringStruct('LegalCopyright', '© 2026 Ing.-Büro Sachit Shrestha · Team Nepal Solutions'),
       StringStruct('OriginalFilename', 'Nexus.exe'),
-      StringStruct('ProductName', 'Nexus Compare & Editor'),
-      StringStruct('ProductVersion', '0.3.0'),
+      StringStruct('ProductName', 'NEXUS ONE'),
+      StringStruct('ProductVersion', '0.4.0'),
       StringStruct('Comments', 'Powered by Ing.-Büro Sachit Shrestha')])]),
     VarFileInfo([VarStruct('Translation', [0x0407, 1200])])
   ]

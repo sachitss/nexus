@@ -1,8 +1,8 @@
-﻿; Inno Setup script for Nexus Compare & Editor (Windows 10/11, per-user or per-machine)
+﻿; Inno Setup script for NEXUS ONE (Windows 10/11, per-user or per-machine)
 ; Build first:  build_windows.bat   (creates dist\Nexus\Nexus.exe)
 ; Then:         "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer\nexus.iss
-#define AppName "Nexus Compare & Editor"
-#define AppVersion "0.3.0"
+#define AppName "NEXUS ONE"
+#define AppVersion "0.4.0"
 #define AppExe "Nexus.exe"
 
 [Setup]

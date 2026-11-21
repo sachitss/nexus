@@ -28,6 +28,7 @@ from .textcompare import TextCompareView, Side
 from .tablecompare import TableCompareView
 from .foldercompare import FolderCompareView, MultiFolderView
 from .engviews import VdiView, StructCompareView, BinaryCompareView, MergeView
+from .filetools import DuplicateView
 from .toolviews import (ExplorerView, SearchView, WorkbookView, ValidationView, AutomationView, SettingsView)
 
 ENCODINGS = [("UTF-8", "utf-8"), ("UTF-8 with BOM", "utf-8-sig"), ("ANSI / Windows-1252", "cp1252"),
@@ -388,11 +389,14 @@ class MainWindow(QMainWindow):
         t = r.tab("Files")
         g = t.group("Explorer")
         g.large("Dual pane", "explorer", self.open_explorer)
-        g.large("Directory list", "list", lambda: self.open_explorer(1))
-        g.large("Batch rename", "rename", lambda: self.open_explorer(2))
+        g.large("Directory listing", "list", lambda: self.open_explorer(1),
+                tip="Recursive listings with filters, columns, statistics and tree; export to Excel, CSV, TXT, HTML, PDF, Markdown, XML, JSON")
+        g.large("Bulk rename", "rename", lambda: self.open_explorer(2),
+                tip="Ordered rename rules, CSV/Excel mapping, full preview, rollback, history and profiles")
         g.large("Attributes", "attrs", lambda: self.open_explorer(3))
         g = t.group("Analyse")
-        g.small("Duplicates & sizes", "duplicate", lambda: self.open_explorer(1))
+        g.large("Duplicate Finder", "duplicate", self.open_duplicates,
+                tip="Identical files, same names, near-duplicate text and version series. Never deletes anything.")
         g.small("Folder compare", "folder-compare", lambda: self.compare_dialog(folders=True))
         g.small("N-way compare", "structure", self.open_nway)
 
@@ -582,6 +586,10 @@ class MainWindow(QMainWindow):
         t = self.current_tab()
         start = os.path.dirname(t.path) if t and t.path else None
         return self._single(ExplorerView, lambda: ExplorerView(start), sub if isinstance(sub, int) else None)
+
+    def open_duplicates(self):
+        t = self.current_tab()
+        return self._single(DuplicateView, lambda: DuplicateView(os.path.dirname(t.path) if t and t.path else ""))
 
     def open_search(self):
         t = self.current_tab()

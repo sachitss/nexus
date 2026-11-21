@@ -1,7 +1,7 @@
 [project]
 name = "nexus"
-version = "0.3.0"
-description = "Nexus Compare & Editor: file/folder comparison, code editor, VDI 3805 and XML engineering data, file tools and automation"
+version = "0.4.0"
+description = "NEXUS ONE: file/folder comparison, code editor, VDI 3805 and XML engineering data, file tools and automation"
 requires-python = ">=3.10"
 authors = [{ name = "Ing.-Büro Sachit Shrestha (Team Nepal Solutions)" }]
 

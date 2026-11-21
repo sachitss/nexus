@@ -1,4 +1,6 @@
-# Feature specification, status and roadmap (v0.3.0)
+# Feature specification, status and roadmap (v0.4.0, NEXUS ONE)
+
+The NEXUS ONE module-by-module status, gap list and development log are in [nexus-one-status.md](nexus-one-status.md).
 
 Status key: **Done** = implemented and covered by tests or a screenshot · **Partial** = works with the stated limits · **Roadmap** = not built yet, nothing is shown as working.
 
@@ -13,7 +15,7 @@ Status key: **Done** = implemented and covered by tests or a screenshot · **Par
 | 5 | Excel / CSV | Done | XLSX/XLSM/XLS/CSV/TSV. **Normal mode**: cells by position with values, **formulas** and **formatting**, sheet pairing with **renamed-sheet** detection, missing sheets, **named ranges**, **duplicate keys**. **Intelligent mode**: key columns, header alignment, numeric tolerance. Export of differences to XLSX (coloured) or CSV. | Charts, pivot tables and VBA are not compared. |
 | 6 | VDI 3805 (priority) | Done (real layout) | Real Blatt 1 file layout: decimal sub-records (710.01, 970.03), escaped `\;`, Fortran numbers, **hierarchical keys** (type:index chain, indices restart below each parent), product structure from file order. **Profiles built from the guideline documents** (Build profile from guideline…, `--build-profile`): record and field names DE/EN, units, formats, roles, repeating fields, variant meanings, parents. Profile chosen automatically from the 010 header (part number). Validation against field formats (I, N, A<n>, T), mandatory index, orphans, duplicate indices, field counts, undefined record types. Engineering compare with value / notation-only / equivalent; tolerances and unit conversion only when set. Excel/HTML reports. Large catalogues (150k records) compare in the background. XML catalogues via structure compare and XSD validation. | Parts available only as PDF or .doc need a .docx export first. Geometry is compared as values and references, not rendered. 600/610 functions are compared as text, not executed. |
 | 7 | Search and replace | Done | Several folders, regex, case, whole word, **multi-line**, include/exclude, search inside DOCX/XLSX (read-only), replace **preview** with diff, backups, files changed since the preview are skipped, history, export to CSV/XLSX. | – |
-| 8 | File explorer | Done | Dual pane (copy/move/rename/new folder/recycle bin, compare selected). Directory list with export to CSV/XLSX/TXT tree, extension stats, folder sizes, duplicates, similar names. **Batch rename** with rules, template, preview, conflict check, undo log. **Attributes and timestamps.** | Created time can only be set on Windows. |
+| 8 | File explorer and file tools | Done | Dual pane (copy/move/rename/new folder/recycle bin, compare selected). **Directory listing & reports** (filters, 16 columns, grouping, tree, 8 export formats, print preview, templates). **Bulk rename** (ordered rules, CSV/Excel lists, preview, rollback, history, profiles). **Duplicate Finder.** **Attributes and timestamps.** | Created time can only be set on Windows. |
 | 9 | Automation | Done | JSON jobs (folder, file, VDI, XML validation, snapshot, batch), run now, `--job` CLI with exit codes, Windows Task Scheduler command, SQLite history. | Sessions (saved workspace of open tabs and options) are on the roadmap. Today the editor session reopens files. |
 | – | UI | Done | Ribbon (8 tabs, collapsible), customizable Quick Access Toolbar, navy dark and light environments with a Follow Windows mode, dashboard in the concept style, tabs, drag and drop, shortcuts, context menus, resizable panels. | Freely editable ribbon groups are on the roadmap. |
 | – | Reports and AI | Done | HTML, Excel and CSV reports. PDF by printing the HTML report. Offline rule-based summary. Optional Claude summary (opt-in, confirmed per request, difference text only). | Native PDF export is on the roadmap. |
@@ -37,7 +39,7 @@ Status key: **Done** = implemented and covered by tests or a screenshot · **Par
 
 ## Test suite
 
-`python -m pytest -q tests` runs 54 tests:
+`python -m pytest -q tests` runs 72 tests:
 
 * core engines: text, table, folder, sync, rename detection, N-way, XML/JSON, XSD, binary, merge, VDI 3805 keys/structure/validation/rules, engineering values, Office, search/replace, batch rename/undo, attributes, automation and history;
 * VDI 3805 real layout: loader escapes, Fortran numbers, guideline-to-profile extraction (generated test document), derived parents, hierarchical keys, compare, format validation, profile lookup by header, `--build-profile` and `--diff` CLI;

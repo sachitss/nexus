@@ -9,7 +9,10 @@ A job is a JSON file, e.g.
 
 Job types: folder_compare, file_compare, vdi_compare, validate_xml (folder of
 XML files against an XSD), snapshot (detect new/changed/removed files since the
-last run of the same job), batch (a list of other jobs).
+last run of the same job), dir_report (directory listing in any export
+format), duplicates (duplicate and version analysis, never deletes),
+rename_preview (before/after list of a rename profile; renaming itself always
+needs confirmation in the app), batch (a list of other jobs).
 
 Run from the command line (e.g. via Windows Task Scheduler):
     Nexus.exe --job daily.json
@@ -159,6 +162,38 @@ def run_job(job: dict, history: History | None = None) -> list[JobResult]:
             res = JobResult(name, bad == 0, bad == 0, f"{n} XML file(s) checked, {bad} with problems", rp)
         elif t == "snapshot":
             res = _snapshot_job(job, history or History())
+        elif t == "dir_report":
+            from . import dirreport
+            fmt = opts.get("format", "xlsx")
+            o = dirreport.load_template(opts["template"]) if opts.get("template") else dirreport.ReportOptions(
+                **{k: v for k, v in opts.items() if k in dirreport.ReportOptions.__dataclass_fields__})
+            rep = dirreport.scan_and_build(job["folder"], o, recursive=opts.get("recursive", True))
+            rp = dirreport.export(rep, _report_path(job, fmt), fmt)
+            st = rep.stats or {}
+            res = JobResult(name, True, None, f"{len(rep.items):,} entries listed"
+                            + (f", {st.get('files', 0):,} files" if st else ""), rp)
+        elif t == "duplicates":
+            from . import duplicates
+            folders = job.get("folders") or [job["folder"]]
+            dr = duplicates.analyse(folders, opts.get("include", "*"), opts.get("exclude", ""),
+                                    int(opts.get("min_size", 1)), float(opts.get("near_threshold", 0.9)),
+                                    opts.get("near", True), opts.get("versions", True))
+            rp = duplicates.export(dr, _report_path(job, opts.get("format", "xlsx")))
+            res = JobResult(name, True, not dr.identical,
+                            f"{dr.files:,} files, {len(dr.identical)} identical group(s), {len(dr.near)} near-duplicate "
+                            f"pair(s), {len(dr.versions)} version series (nothing deleted)", rp)
+        elif t == "rename_preview":
+            from . import renamer
+            rules = renamer.load_profile(opts["profile"]) if opts.get("profile") else opts.get("rules", [])
+            folder = job["folder"]
+            paths = sorted(os.path.join(folder, n) for n in os.listdir(folder) if os.path.isfile(os.path.join(folder, n)))
+            rows = renamer.preview(paths, rules)
+            rp = _report_path(job, "xlsx")
+            renamer.export_preview(rows, rp)
+            sm = renamer.summary(rows)
+            res = JobResult(name, sm["conflict"] + sm["invalid"] + sm["error"] == 0, sm["ok"] == 0,
+                            f"{sm['ok']} would be renamed, {sm['conflict']} conflict(s); preview only, "
+                            "renaming always needs confirmation in the app", rp)
         else:
             raise ValueError(f"Unknown job type: {t}")
     except Exception as ex:  # noqa: BLE001 - job errors are reported, not raised

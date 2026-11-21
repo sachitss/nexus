@@ -18,9 +18,11 @@ DARK = {
 }
 # folder status colours requested in the specification
 FOLDER_LIGHT = {"same": "#dff3e3", "different": "#fbdada", "modified": "#fff4c2", "new": "#dbe9ff",
-                "excluded": "#ececec", "renamed": "#efe0ff"}
+                "excluded": "#ececec", "renamed": "#efe0ff",
+                "conflict": "#ffd9b0"}
 FOLDER_DARK = {"same": "#163a26", "different": "#4a1f27", "modified": "#4a4016", "new": "#173560",
-               "excluded": "#262c38", "renamed": "#3a2856"}
+               "excluded": "#262c38", "renamed": "#3a2856",
+               "conflict": "#5a3412"}
 
 TOKEN_COLORS_LIGHT = {
     "Keyword": ("#0033b3", True), "Name.Builtin": ("#7a3e9d", False), "Name.Function": ("#00627a", False),

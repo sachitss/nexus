@@ -21,6 +21,7 @@ from ..core import fileops, msearch, office, structdiff, vdi3805, automation, lo
 from ..core.automation import app_data_dir
 from .common import Task, PathRow, make_table, fill_table, fmt_size, kind_color, short
 from .theme import Theme, mono_font
+from .filetools import ReportPanel as DirectoryListPanel, RenamePanel as BatchRenamePanel  # noqa: F401
 
 
 class _Base(QWidget):
@@ -83,9 +84,9 @@ class ExplorerView(_Base):
         self.tabs.addTab(self._dual(path), "Dual pane")
         self.listing = DirectoryListPanel(path)
         self.listing.openFile.connect(self.openFile)
-        self.tabs.addTab(self.listing, "Directory list && statistics")
+        self.tabs.addTab(self.listing, "Directory listing && reports")
         self.rename = BatchRenamePanel()
-        self.tabs.addTab(self.rename, "Batch rename")
+        self.tabs.addTab(self.rename, "Bulk rename")
         self.attrs = AttributesPanel()
         self.tabs.addTab(self.attrs, "Attributes && timestamps")
 
@@ -185,7 +186,7 @@ class ExplorerView(_Base):
             QMessageBox.information(self, "Compare", "Select exactly two files or folders (in one or both panes).")
 
     def to_rename(self):
-        self.rename.add_paths(self.active.selected())
+        self.rename.add_paths(self.active.selected(), folders_too=True)
         self.tabs.setCurrentWidget(self.rename)
 
     def to_attrs(self):
@@ -195,286 +196,6 @@ class ExplorerView(_Base):
     def to_list(self):
         self.listing.root.setText(self.active.cwd())
         self.tabs.setCurrentWidget(self.listing)
-
-
-class DirectoryListPanel(QWidget):
-    openFile = Signal(str)
-
-    def __init__(self, path=""):
-        super().__init__()
-        self.files = []
-        self.task = None
-        v = QVBoxLayout(self)
-        v.setContentsMargins(4, 4, 4, 4)
-        self.root = PathRow("Folder:", folder=True, text=path)
-        v.addWidget(self.root)
-        h = QHBoxLayout()
-        self.inc = QLineEdit("*")
-        self.exc = QLineEdit("")
-        self.exc.setPlaceholderText("e.g. *.tmp;.git")
-        self.rec = QCheckBox("Subfolders")
-        self.rec.setChecked(True)
-        self.dirs = QCheckBox("List folders too")
-        self.dirs.setChecked(True)
-        self.depth = QSpinBox()
-        self.depth.setRange(0, 99)
-        self.depth.setSpecialValueText("any depth")
-        for w in (QLabel("Include:"), self.inc, QLabel("Exclude:"), self.exc, self.rec, self.dirs, QLabel("Max depth:"), self.depth):
-            h.addWidget(w)
-        v.addLayout(h)
-        h2 = QHBoxLayout()
-        for t, slot in (("Scan", self.scan), ("Find duplicates", self.dups), ("Similar names", self.similar),
-                        ("Export CSV…", lambda: self.export("csv")), ("Export Excel…", lambda: self.export("xlsx")),
-                        ("Export TXT tree…", lambda: self.export("txt"))):
-            b = QPushButton(t)
-            b.clicked.connect(slot)
-            h2.addWidget(b)
-        self.filter = QLineEdit()
-        self.filter.setPlaceholderText("Filter list…")
-        self.filter.textChanged.connect(self._fill)
-        h2.addWidget(self.filter, 1)
-        v.addLayout(h2)
-        sp = QSplitter()
-        self.table = make_table(fileops.HEADER)
-        self.table.itemDoubleClicked.connect(self._open)
-        sp.addWidget(self.table)
-        self.side = QTabWidget()
-        self.ext = make_table(["Extension", "Files", "Size"])
-        self.sizes = make_table(["Folder", "Size", "Files"])
-        self.dup = make_table(["Group", "Size", "Path"])
-        self.dup.itemDoubleClicked.connect(lambda it: self.openFile.emit(self.dup.item(it.row(), 2).text()))
-        self.sim = make_table(["Name A", "Name B", "Similarity"])
-        for w, t in ((self.ext, "Extensions"), (self.sizes, "Folder sizes"), (self.dup, "Duplicates"), (self.sim, "Similar names")):
-            self.side.addTab(w, t)
-        sp.addWidget(self.side)
-        sp.setSizes([800, 420])
-        v.addWidget(sp, 1)
-        self.status = QLabel()
-        v.addWidget(self.status)
-
-    def scan(self):
-        r = self.root.text()
-        if not os.path.isdir(r):
-            self.status.setText("Choose an existing folder.")
-            return
-        self.status.setText("Scanning…")
-        self.task = Task(fileops.list_directory, r, self.rec.isChecked(), self.inc.text(), self.exc.text(),
-                         self.dirs.isChecked(), self.depth.value() or None)
-        self.task.done.connect(self._done)
-        self.task.failed.connect(lambda m: self.status.setText("Error: " + m))
-        self.task.start()
-
-    def _done(self, files):
-        self.files = files
-        self._fill()
-        fill_table(self.ext, [[e, c, fmt_size(s)] for e, c, s in fileops.extension_stats(files)])
-        fill_table(self.sizes, [[k, fmt_size(s), c] for k, s, c in fileops.folder_sizes(files, self.root.text())])
-        nf = sum(not f.is_dir for f in files)
-        total = sum(f.size for f in files if not f.is_dir)
-        self.status.setText(f"{nf:,} file(s), {len(files) - nf:,} folder(s), {fmt_size(total)} in total.")
-
-    def _fill(self, *_):
-        q = self.filter.text().lower()
-        fs = [f for f in self.files if not q or q in f.rel.lower()]
-        fill_table(self.table, [f.row() for f in fs], data=fs)
-
-    def _open(self, it):
-        f = self.table.item(it.row(), 0).data(Qt.ItemDataRole.UserRole)
-        if f and not f.is_dir:
-            self.openFile.emit(f.path)
-
-    def dups(self):
-        paths = [f.path for f in self.files if not f.is_dir]
-        if not paths:
-            self.status.setText("Scan a folder first.")
-            return
-        self.status.setText("Looking for identical files (size, then content hash)…")
-        self.task = Task(fileops.find_duplicates, paths)
-        self.task.done.connect(self._dups_done)
-        self.task.start()
-
-    def _dups_done(self, groups):
-        rows = []
-        for g, paths in enumerate(groups, 1):
-            for p in paths:
-                rows.append([g, fmt_size(os.path.getsize(p)) if os.path.exists(p) else "", p])
-        fill_table(self.dup, rows)
-        wasted = sum(os.path.getsize(g[0]) * (len(g) - 1) for g in groups if os.path.exists(g[0]))
-        self.status.setText(f"{len(groups)} group(s) of identical files; {fmt_size(wasted)} could be freed. "
-                            "Nothing is deleted automatically.")
-        self.side.setCurrentWidget(self.dup)
-
-    def similar(self):
-        if not self.files:
-            return
-        fill_table(self.sim, [[a, b, f"{s:.0%}"] for a, b, s in fileops.find_similar_names(self.files)])
-        self.side.setCurrentWidget(self.sim)
-
-    def export(self, fmt):
-        if not self.files:
-            return
-        p, _ = QFileDialog.getSaveFileName(self, "Export list", f"directory-list.{fmt}", f"*.{fmt}")
-        if p:
-            fileops.export_list(self.files, p, fmt)
-            self.status.setText(f"Exported {len(self.files):,} entries to {p}")
-
-
-class BatchRenamePanel(QWidget):
-    def __init__(self):
-        super().__init__()
-        self.preview_rows = []
-        v = QVBoxLayout(self)
-        v.setContentsMargins(4, 4, 4, 4)
-        h = QHBoxLayout()
-        for t, slot in (("Add files…", self.add_files), ("Add folder contents…", self.add_folder), ("Clear", self.clear)):
-            b = QPushButton(t)
-            b.clicked.connect(slot)
-            h.addWidget(b)
-        h.addStretch()
-        v.addLayout(h)
-        g = QGroupBox("Rules (applied in this order: template or find/replace, case, spaces, prefix/suffix, numbering, extension)")
-        f = QFormLayout(g)
-        self.find, self.repl = QLineEdit(), QLineEdit()
-        self.regex = QCheckBox("Regular expression")
-        self.cs = QCheckBox("Case-sensitive")
-        row = QHBoxLayout()
-        for w in (self.find, QLabel("→"), self.repl, self.regex, self.cs):
-            row.addWidget(w)
-        f.addRow("Find / replace:", row)
-        self.case = QComboBox()
-        self.case.addItems(["(keep)", "upper", "lower", "title", "sentence"])
-        self.spaces = QLineEdit()
-        self.spaces.setPlaceholderText("replace spaces with… (empty = keep)")
-        row2 = QHBoxLayout()
-        row2.addWidget(self.case)
-        row2.addWidget(self.spaces)
-        f.addRow("Case / spaces:", row2)
-        self.prefix, self.suffix = QLineEdit(), QLineEdit()
-        row3 = QHBoxLayout()
-        row3.addWidget(QLabel("Prefix"))
-        row3.addWidget(self.prefix)
-        row3.addWidget(QLabel("Suffix"))
-        row3.addWidget(self.suffix)
-        f.addRow("Add text:", row3)
-        self.num = QCheckBox("Numbering")
-        self.start, self.step, self.digits = QSpinBox(), QSpinBox(), QSpinBox()
-        self.start.setRange(0, 999999)
-        self.start.setValue(1)
-        self.step.setRange(1, 1000)
-        self.digits.setRange(1, 9)
-        self.digits.setValue(3)
-        self.pos = QComboBox()
-        self.pos.addItems(["suffix", "prefix"])
-        self.sep = QLineEdit("_")
-        self.sep.setMaximumWidth(40)
-        row4 = QHBoxLayout()
-        for w in (self.num, QLabel("start"), self.start, QLabel("step"), self.step, QLabel("digits"), self.digits,
-                  self.pos, QLabel("separator"), self.sep):
-            row4.addWidget(w)
-        f.addRow("Counter:", row4)
-        self.ext = QLineEdit()
-        self.ext.setPlaceholderText("new extension without dot (leave empty to keep)")
-        self.template = QLineEdit()
-        self.template.setPlaceholderText("optional, e.g. {name}_{mtime:%Y%m%d}{ext}  (overrides find/replace)")
-        f.addRow("Extension:", self.ext)
-        f.addRow("Template:", self.template)
-        v.addWidget(g)
-        h2 = QHBoxLayout()
-        for t, slot in (("Preview", self.preview), ("Rename…", self.apply), ("Undo last rename…", self.undo)):
-            b = QPushButton(t)
-            b.clicked.connect(slot)
-            h2.addWidget(b)
-        h2.addStretch()
-        v.addLayout(h2)
-        self.list = QListWidget()
-        self.list.setMaximumHeight(90)
-        v.addWidget(self.list)
-        self.table = make_table(["Status", "Current name", "New name", "Folder"])
-        v.addWidget(self.table, 1)
-        self.status = QLabel("Nothing is renamed until you press Rename and confirm.")
-        v.addWidget(self.status)
-        for w in (self.find, self.repl, self.prefix, self.suffix, self.spaces, self.ext, self.template, self.sep):
-            w.textChanged.connect(self.preview)
-        for w in (self.regex, self.cs, self.num):
-            w.toggled.connect(self.preview)
-        for w in (self.start, self.step, self.digits):
-            w.valueChanged.connect(self.preview)
-        for w in (self.case, self.pos):
-            w.currentIndexChanged.connect(self.preview)
-
-    def paths(self):
-        return [self.list.item(i).text() for i in range(self.list.count())]
-
-    def add_paths(self, ps):
-        have = set(self.paths())
-        for p in ps:
-            if os.path.isfile(p) and p not in have:
-                self.list.addItem(p)
-        self.preview()
-
-    def add_files(self):
-        ps, _ = QFileDialog.getOpenFileNames(self, "Add files")
-        self.add_paths(ps)
-
-    def add_folder(self):
-        d = QFileDialog.getExistingDirectory(self, "Add files of folder")
-        if d:
-            self.add_paths(sorted(os.path.join(d, n) for n in os.listdir(d)))
-
-    def clear(self):
-        self.list.clear()
-        self.preview()
-
-    def rules(self):
-        return fileops.RenameRules(
-            find=self.find.text(), replace=self.repl.text(), regex=self.regex.isChecked(),
-            case_sensitive=self.cs.isChecked(), case="" if self.case.currentIndex() == 0 else self.case.currentText(),
-            prefix=self.prefix.text(), suffix=self.suffix.text(), numbering=self.num.isChecked(),
-            num_start=self.start.value(), num_step=self.step.value(), num_digits=self.digits.value(),
-            num_position=self.pos.currentText(), num_separator=self.sep.text(),
-            new_extension=self.ext.text().lstrip(".") or None, template=self.template.text(),
-            replace_spaces_with=self.spaces.text() or None)
-
-    def preview(self, *_):
-        self.preview_rows = fileops.preview_rename(self.paths(), self.rules())
-        col = {"ok": Theme.folder("new"), "conflict": Theme.folder("different"), "invalid": Theme.folder("different"),
-               "unchanged": None}
-        fill_table(self.table, [[r["status"], r["old"], r["new"], os.path.dirname(r["path"])] for r in self.preview_rows],
-                   [col.get(r["status"], Theme.folder("different")) for r in self.preview_rows])
-        n = sum(r["status"] == "ok" for r in self.preview_rows)
-        bad = sum(r["status"] in ("conflict", "invalid") or r["status"].startswith("error") for r in self.preview_rows)
-        self.status.setText(f"{n} file(s) will be renamed, {bad} problem(s). Nothing is renamed until you confirm.")
-
-    def apply(self):
-        self.preview()
-        n = sum(r["status"] == "ok" for r in self.preview_rows)
-        if not n:
-            return
-        if any(r["status"] in ("conflict", "invalid") for r in self.preview_rows):
-            QMessageBox.warning(self, "Rename", "Resolve the conflicts / invalid names first.")
-            return
-        if QMessageBox.question(self, "Rename", f"Rename {n} file(s)? An undo log is written.") != QMessageBox.StandardButton.Yes:
-            return
-        logd = os.path.join(app_data_dir(), "rename-logs")
-        os.makedirs(logd, exist_ok=True)
-        log = os.path.join(logd, _dt.datetime.now().strftime("rename-%Y%m%d-%H%M%S.json"))
-        done = fileops.apply_rename(self.preview_rows, log)
-        QSettings("Nexus", "Nexus").setValue("last_rename_log", log)
-        renamed = {d["from"]: d["to"] for d in done}
-        ps = [renamed.get(p, p) for p in self.paths()]
-        self.list.clear()
-        self.list.addItems(ps)
-        self.preview()
-        self.status.setText(f"Renamed {len(done)} file(s). Undo log: {log}")
-
-    def undo(self):
-        log = QSettings("Nexus", "Nexus").value("last_rename_log", "")
-        if not log or not os.path.exists(log):
-            log, _ = QFileDialog.getOpenFileName(self, "Choose undo log", os.path.join(app_data_dir(), "rename-logs"), "JSON (*.json)")
-        if log and QMessageBox.question(self, "Undo", f"Undo the renames recorded in\n{log}?") == QMessageBox.StandardButton.Yes:
-            n = fileops.undo_rename(log)
-            self.status.setText(f"Restored {n} name(s).")
-            self.list.clear()
 
 
 class AttributesPanel(QWidget):
@@ -1023,6 +744,19 @@ JOB_TEMPLATES = {
                          "right": "C:/vdi/new.vdi", "options": {"profile": "auto"}},
     "Validate XML folder": {"name": "XML validation", "type": "validate_xml", "folder": "C:/exchange", "xsd": ""},
     "Folder snapshot": {"name": "Watch drawings", "type": "snapshot", "folder": "D:/Projects/A/Drawings"},
+    "Directory report": {"name": "Delivery listing", "type": "dir_report", "folder": "D:/Projects/A",
+                         "options": {"format": "xlsx", "columns": ["rel", "size_h", "modified", "sha256"],
+                                     "include_tree": True}},
+    "Duplicate analysis": {"name": "Duplicates", "type": "duplicates", "folders": ["D:/Projects/A"],
+                           "options": {"format": "xlsx", "near": True, "versions": True}},
+    "Rename preview": {"name": "Naming check", "type": "rename_preview", "folder": "D:/Projects/A/Out",
+                       "options": {"profile": ""}},
+    "Delivery workflow": {"name": "Delivery check", "type": "batch", "jobs": [
+        {"name": "Listing", "type": "dir_report", "folder": "D:/Delivery/new", "options": {"format": "xlsx"}},
+        {"name": "Changes since last delivery", "type": "folder_compare", "left": "D:/Delivery/previous",
+         "right": "D:/Delivery/new", "options": {"method": "content"}},
+        {"name": "XML check", "type": "validate_xml", "folder": "D:/Delivery/new", "xsd": ""},
+        {"name": "Duplicates", "type": "duplicates", "folders": ["D:/Delivery/new"], "options": {"near": False}}]},
     "Batch": {"name": "Nightly", "type": "batch", "jobs": []},
 }
 

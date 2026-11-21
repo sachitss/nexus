@@ -54,7 +54,7 @@ class Dashboard(QWidget):
         hv = QVBoxLayout(hero)
         hv.setContentsMargins(22, 16, 22, 16)
         top = QHBoxLayout()
-        name = QLabel("NEXUS")
+        name = QLabel("NEXUS ONE")
         name.setObjectName("HeroName")
         badge = QLabel(f"v{__version__}")
         badge.setObjectName("HeroBadge")
@@ -64,7 +64,7 @@ class Dashboard(QWidget):
         hv.addLayout(top)
         tag = QLabel("COMPARE · EDIT · VALIDATE")
         tag.setObjectName("HeroTag")
-        sub = QLabel("Advanced File Intelligence & Engineering Data Platform")
+        sub = QLabel("File Management, Comparison, Editing & Engineering Intelligence")
         sub.setObjectName("HeroSub")
         hv.addWidget(tag)
         subrow = QHBoxLayout()
@@ -103,7 +103,10 @@ class Dashboard(QWidget):
             ("XML / JSON", "Structure + XSD", "xml", lambda: win.compare_dialog(hint="xml")),
             ("Three-way merge", "Base, mine, theirs", "merge", win.open_merge),
             ("Binary", "Hex comparison", "binary", lambda: win.compare_dialog(hint="binary")),
-            ("File Explorer", "Dual pane, list, rename", "explorer", win.open_explorer),
+            ("File Explorer", "Dual pane, copy, move", "explorer", win.open_explorer),
+            ("Directory Listing", "Reports, tree, 8 formats", "list", lambda: win.open_explorer(1)),
+            ("Bulk Rename", "Rules, preview, undo", "rename", lambda: win.open_explorer(2)),
+            ("Duplicate Finder", "Copies, versions, similar", "duplicate", win.open_duplicates),
             ("Search & Replace", "Many folders, preview", "search", win.open_search),
             ("Validation & Reports", "XSD, VDI checks", "validate", win.open_validation),
             ("Automation", "Jobs, profiles, history", "automation", win.open_automation),
