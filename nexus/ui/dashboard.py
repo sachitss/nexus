@@ -7,7 +7,10 @@ from PySide6.QtCore import Qt, QSize, Signal
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, QGridLayout, QToolButton, QFrame,
                                QTableWidget, QTableWidgetItem, QHeaderView, QAbstractItemView, QScrollArea)
 
-from .. import __version__
+from .. import __version__, POWERED_BY, BRAND, COPYRIGHT
+from PySide6.QtGui import QPixmap
+
+LOGO = os.path.join(os.path.dirname(os.path.dirname(__file__)), "resources", "brand-logo.png")
 from .icons import icon
 from .theme import Theme
 
@@ -64,7 +67,14 @@ class Dashboard(QWidget):
         sub = QLabel("Advanced File Intelligence & Engineering Data Platform")
         sub.setObjectName("HeroSub")
         hv.addWidget(tag)
-        hv.addWidget(sub)
+        subrow = QHBoxLayout()
+        subrow.addWidget(sub)
+        subrow.addStretch()
+        powered = QLabel(POWERED_BY)
+        powered.setObjectName("HeroPowered")
+        powered.setToolTip(f"{BRAND} · {COPYRIGHT}")
+        subrow.addWidget(powered)
+        hv.addLayout(subrow)
         line = QFrame()
         line.setObjectName("HeroLine")
         line.setFixedHeight(1)
@@ -121,6 +131,21 @@ class Dashboard(QWidget):
         hint.setObjectName("Hint")
         hint.setWordWrap(True)
         v.addWidget(hint)
+        # publisher footer: logo on a white card (the logo has dark lettering), "Powered by ..."
+        foot = QHBoxLayout()
+        foot.setSpacing(12)
+        logo = QLabel()
+        logo.setObjectName("BrandLogo")
+        pm = QPixmap(LOGO)
+        if not pm.isNull():
+            logo.setPixmap(pm.scaledToHeight(54, Qt.TransformationMode.SmoothTransformation))
+        logo.setToolTip(BRAND)
+        foot.addWidget(logo)
+        txt = QLabel(f"<b>{POWERED_BY}</b><br>{BRAND} · {COPYRIGHT.split(' · ')[0]}")
+        txt.setObjectName("PoweredBy")
+        foot.addWidget(txt)
+        foot.addStretch()
+        v.addLayout(foot)
         self.apply_style()
         self.refresh()
 
@@ -133,12 +158,15 @@ class Dashboard(QWidget):
 #HeroBadge { color: #34d17a; background: #123a2a; border-radius: 9px; padding: 2px 10px; }
 #HeroTag { color: #ffffff; font-size: 14pt; font-weight: 700; }
 #HeroSub { color: #c5d1e6; font-size: 10.5pt; }
+#HeroPowered { color: #7fb2ff; font-size: 9.5pt; font-weight: 600; }
 #HeroLine { background: #2e4066; }
 #Tile { background: #1c2b4a; color: #ffffff; border: 1px solid #263a62; border-radius: 8px; padding: 8px 12px;
         text-align: left; font-weight: 600; }
 #Tile:hover { background: #24375e; border-color: #4c8dff; }
 #SectionTitle { color: #c5d1e6; font-size: 11pt; font-weight: 700; }
 #Hint { color: #7d8db0; }
+#BrandLogo { background: #ffffff; border-radius: 8px; padding: 4px 8px; }
+#PoweredBy { color: #c5d1e6; }
 """
         else:
             qss = """
@@ -148,6 +176,7 @@ class Dashboard(QWidget):
 #HeroBadge { color: #34d17a; background: #123a2a; border-radius: 9px; padding: 2px 10px; }
 #HeroTag { color: #ffffff; font-size: 14pt; font-weight: 700; }
 #HeroSub { color: #c5d1e6; font-size: 10.5pt; }
+#HeroPowered { color: #7fb2ff; font-size: 9.5pt; font-weight: 600; }
 #HeroLine { background: #2e4066; }
 #Hero #Tile { background: #1c2b4a; color: #ffffff; border: 1px solid #263a62; }
 #Tile { background: #ffffff; color: #17233b; border: 1px solid #d5ddeb; border-radius: 8px; padding: 8px 12px;
@@ -155,6 +184,8 @@ class Dashboard(QWidget):
 #Tile:hover { border-color: #2f6fd6; }
 #SectionTitle { color: #17233b; font-size: 11pt; font-weight: 700; }
 #Hint { color: #6a7a96; }
+#BrandLogo { background: #ffffff; border: 1px solid #d5ddeb; border-radius: 8px; padding: 4px 8px; }
+#PoweredBy { color: #17233b; }
 """
         self.setStyleSheet(qss)
 

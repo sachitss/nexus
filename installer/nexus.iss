@@ -1,4 +1,4 @@
-; Inno Setup script for Nexus Compare & Editor (Windows 10/11, per-user or per-machine)
+﻿; Inno Setup script for Nexus Compare & Editor (Windows 10/11, per-user or per-machine)
 ; Build first:  build_windows.bat   (creates dist\Nexus\Nexus.exe)
 ; Then:         "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer\nexus.iss
 #define AppName "Nexus Compare & Editor"
@@ -9,7 +9,16 @@
 AppId={{6C1E3F5A-2B7D-4E61-9C0B-7A3D2E8F4B11}
 AppName={#AppName}
 AppVersion={#AppVersion}
-AppPublisher=Nexus
+AppPublisher=Ing.-Büro Sachit Shrestha
+AppPublisherURL=https://github.com/sachitss/nexus
+AppSupportURL=https://github.com/sachitss/nexus/issues
+AppUpdatesURL=https://github.com/sachitss/nexus/releases
+AppCopyright=© 2026 Ing.-Büro Sachit Shrestha · Team Nepal Solutions
+AppComments=Powered by Ing.-Büro Sachit Shrestha
+VersionInfoCompany=Ing.-Büro Sachit Shrestha
+VersionInfoDescription={#AppName} setup
+VersionInfoCopyright=© 2026 Ing.-Büro Sachit Shrestha
+VersionInfoVersion={#AppVersion}
 DefaultDirName={autopf}\Nexus
 DefaultGroupName=Nexus
 UninstallDisplayIcon={app}\{#AppExe}

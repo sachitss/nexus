@@ -50,3 +50,11 @@ python -m nexus --build-profile VDI_3805_1.docx VDI_3805_06.docx   # VDI part pr
 
 ## Licence notes
 Nexus uses Qt through PySide6 (LGPL-3.0, dynamically linked in the one-folder build). The other dependencies are permissive (MIT/BSD). See `docs/architecture.md`. Nexus is original work. Third-party products named in the research were used only as feature references and were not run, decompiled or copied.
+
+---
+
+<img src="nexus/resources/brand-logo.png" alt="Team Nepal Solutions" height="70">
+
+**Powered by Ing.-Büro Sachit Shrestha** · Team Nepal Solutions  
+© 2026 Ing.-Büro Sachit Shrestha. Project and releases: https://github.com/sachitss/nexus
+

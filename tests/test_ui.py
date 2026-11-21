@@ -109,3 +109,12 @@ def test_light_dark_environment(win):
     assert theme.Theme.dark == theme.system_is_dark(app) and win.theme_actions["system"].isChecked()
     win.set_theme("dark")
     assert win.ribbon.find_action("Toggle light / dark") is not None
+
+
+def test_branding(win):
+    from nexus import POWERED_BY, PUBLISHER
+    from nexus.ui.dashboard import LOGO
+    from PySide6.QtWidgets import QLabel
+    assert os.path.exists(LOGO) and PUBLISHER == "Ing.-Büro Sachit Shrestha"
+    texts = [w.text() for w in win.findChildren(QLabel)]
+    assert any(POWERED_BY in t for t in texts)

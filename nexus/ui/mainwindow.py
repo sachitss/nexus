@@ -7,7 +7,7 @@ import os
 import xml.dom.minidom
 
 from PySide6.QtCore import Qt, QSettings, QFileSystemWatcher, QTimer
-from PySide6.QtGui import QAction, QActionGroup, QKeySequence, QGuiApplication
+from PySide6.QtGui import QAction, QActionGroup, QKeySequence, QGuiApplication, QPixmap, QPainter, QColor
 from PySide6.QtWidgets import (QMainWindow, QTabWidget, QFileDialog, QMessageBox, QLabel, QComboBox, QDialog,
                                QDialogButtonBox, QGridLayout, QLineEdit, QPushButton, QInputDialog, QWidget,
                                QVBoxLayout, QDockWidget, QApplication, QMenu, QToolBar, QToolButton)
@@ -1106,12 +1106,30 @@ class MainWindow(QMainWindow):
 <tr><td><b>Ctrl+Wheel</b></td><td>Zoom</td></tr></table>""")
 
     def about(self):
-        QMessageBox.about(self, f"About {APP_NAME}",
-                          f"<h3>{APP_NAME} {__version__}</h3><p>COMPARE · EDIT · VALIDATE</p>"
-                          "<p>Advanced file intelligence &amp; engineering data platform: folder and file comparison, "
-                          "a code editor, VDI 3805 and XML engineering data, Office documents, search &amp; replace, "
-                          "file tools and automation. Everything runs locally.</p>"
-                          "<p>Built with Python, Qt (PySide6, LGPL), Pygments, openpyxl, python-docx, xlrd and lxml.</p>")
+        from .. import POWERED_BY, PUBLISHER, BRAND, COPYRIGHT, HOMEPAGE
+        from .dashboard import LOGO
+        box = QMessageBox(self)
+        box.setWindowTitle(f"About {APP_NAME}")
+        pm = QPixmap(LOGO)
+        if not pm.isNull():                      # white backing so the dark lettering reads in the dark theme
+            card = QPixmap(pm.width() + 24, pm.height() + 24)
+            card.fill(QColor("#ffffff"))
+            p = QPainter(card)
+            p.drawPixmap(12, 12, pm)
+            p.end()
+            box.setIconPixmap(card.scaledToWidth(220, Qt.TransformationMode.SmoothTransformation))
+        box.setTextFormat(Qt.TextFormat.RichText)
+        box.setText(f"<h3>{APP_NAME} {__version__}</h3><p>COMPARE · EDIT · VALIDATE</p>"
+                    f"<p><b>{POWERED_BY}</b><br>{BRAND}</p>")
+        box.setInformativeText(
+            "<p>Advanced file intelligence &amp; engineering data platform: folder and file comparison, "
+            "a code editor, VDI 3805 and XML engineering data, Office documents, search &amp; replace, "
+            "file tools and automation. Everything runs locally.</p>"
+            f"<p>Publisher: {PUBLISHER}<br>{COPYRIGHT}<br>"
+            f'Project and updates: <a href="{HOMEPAGE}">{HOMEPAGE}</a></p>'
+            "<p>Built with Python, Qt (PySide6, LGPL), Pygments, openpyxl, python-docx, xlrd and lxml.</p>")
+        box.setStandardButtons(QMessageBox.StandardButton.Ok)
+        box.exec()
 
     # ================================================================ drag & drop, session
     def dragEnterEvent(self, e):

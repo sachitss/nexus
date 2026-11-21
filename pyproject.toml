@@ -3,7 +3,13 @@ name = "nexus"
 version = "0.3.0"
 description = "Nexus Compare & Editor: file/folder comparison, code editor, VDI 3805 and XML engineering data, file tools and automation"
 requires-python = ">=3.10"
+authors = [{ name = "Ing.-Büro Sachit Shrestha (Team Nepal Solutions)" }]
+
 dependencies = ["PySide6>=6.6", "Pygments>=2.15", "openpyxl>=3.1", "python-docx>=1.1", "chardet>=5", "lxml>=5", "xlrd>=2"]
+
+[project.urls]
+Homepage = "https://github.com/sachitss/nexus"
+Releases = "https://github.com/sachitss/nexus/releases"
 
 [project.optional-dependencies]
 ai = ["anthropic>=0.70"]

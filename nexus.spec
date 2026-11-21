@@ -10,5 +10,5 @@ a = Analysis(
 )
 pyz = PYZ(a.pure)
 exe = EXE(pyz, a.scripts, [], exclude_binaries=True, name="Nexus", console=False,
-          icon="nexus/resources/icon.ico")
+          icon="nexus/resources/icon.ico", version="installer/version_info.txt")
 coll = COLLECT(exe, a.binaries, a.datas, name="Nexus")
